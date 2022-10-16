@@ -6,19 +6,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 import * as ErrorHandling from "https://scotwatson.github.io/ErrorHandling/ErrorHandling.mjs";
 import * as Memory from "https://scotwatson.github.io/Memory/Memory.mjs";
+import * as Unicode from "https://scotwatson.github.io/Unicode/Unicode.mjs";
+import * as UnicodeString from "https://scotwatson.github.io/UnicodeString/UnicodeString.mjs";
 
-// Per Section 3.8
 export function assert(condition) {
   if (!condition) {
     throw new Error("Assertion Failed; Report issue to document writer.");
   }
 }
 
-// Section 4.1: null is an ECMAScript Language type (value)
-
-// Section 4.2: boolean is an ECMAScript Language type (value)
-
-// Per Section 4.3
 export class Byte extends Memory.Uint8 {
   constructor() {
     const mem = new Memory.Block(Memory.Uint8.BYTE_LENGTH);
@@ -39,7 +35,6 @@ export function isAsciiByte(args) {
   return (byte.valueOf() < 0x80);
 }
 
-// Per Section 4.4
 export class ByteSequence extends Memory.DataArray {
   constructor(args) {
     let length;
@@ -165,5 +160,62 @@ export class ByteSequence extends Memory.DataArray {
       ret += String.fromCharCode(byte.valueOf());
     }
     return ret;
+  }
+};
+
+class CodePoint extends Unicode.UnicodeCodePoint {
+  constructor(args) {
+    super(args);
+  }
+  isSurrogate() {
+    return ((this.valueOf() >= 0xD800) && (this.valueOf() <= 0xDFFF));
+  }
+  isScalarValue() {
+    return (!this.isSurrogate());
+  }
+  isNoncharacter() {
+    return (((this.valueOf() >= 0xFDD0) && (this.valueOf() <= 0xFDEF)) || ((this.valueOf() && 0xFFFE) === 0xFFFE));
+  }
+  isAscii() {
+    return ((this.valueOf() >= 0x0000) && (this.valueOf() <= 0x007F));
+  }
+  isAsciiTabOrNewline() {
+    return ((this.valueOf() === 0x0009) || (this.valueOf() === 0x000A) || (this.valueOf() === 0x000D));
+  }
+  isAsciiWhitespace() {
+    return ((this.valueOf() === 0x0009) || (this.valueOf() === 0x000A) || (this.valueOf() === 0x000C) || (this.valueOf() === 0x000D) || (this.valueOf() === 0x0020));
+  }
+  isC0Control() {
+    return ((this.valueOf() >= 0x0000) && (this.valueOf() <= 0x001F));
+  }
+  isC0ControlOrSpace() {
+    return (this.isC0Control() || (this.valueOf() === 0x0020));
+  }
+  isControl() {
+    return (this.isC0Control() || ((this.valueOf() >= 0x007F) && (this.valueOf() <= 0x009F)));
+  }
+  isAsciiDigit() {
+    return ((this.valueOf() >= 0x0030) && (this.valueOf() <= 0x0039));
+  }
+  isAsciiUpperHexDigit() {
+    return (this.isAsciiDigit() || ((this.valueOf() >= 0x0041) && (this.valueOf() <= 0x0046)));
+  }
+  isAsciiLowerHexDigit() {
+    return (this.isAsciiDigit() || ((this.valueOf() >= 0x0061) && (this.valueOf() <= 0x0066)));
+  }
+  isAsciiHexDigit() {
+    return (this.isAsciiUpperHexDigit() || this.isAsciiLowerHexDigit());
+  }
+  isAsciiUpperAlpha() {
+    return ((this.valueOf() >= 0x0041) && (this.valueOf() <= 0x005A));
+  }
+  isAsciiLowerAlpha() {
+    return ((this.valueOf() >= 0x0061) && (this.valueOf() <= 0x007A));
+  }
+  isAsciiAlpha() {
+    return (this.isAsciiUpperAlpha() || this.isAsciiLowerAlpha());
+  }
+  isAsciiAlphanumeric() {
+    return (this.isAsciiDigit() || this.isAsciiAlpha());
   }
 };
