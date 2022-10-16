@@ -21,19 +21,11 @@ export class Byte extends Memory.Uint8 {
     const view = new Memory.View(mem);
     super(view);
   }
-};
-
-export function isAsciiByte(args) {
-  let byte;
-  if (args instanceof Memory.Uint8) {
-    byte = args;
-  } else if (ErrorHandling.isBaseObject(args)) {
-    byte = args.byte;
-  } else {
-    return false;
+  isAscii() {
+    let byte = this;
+    return (byte.valueOf() < 0x80);
   }
-  return (byte.valueOf() < 0x80);
-}
+};
 
 export class ByteSequence extends Memory.DataArray {
   constructor(args) {
